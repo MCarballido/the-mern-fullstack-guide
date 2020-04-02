@@ -8,4 +8,16 @@ const app = express();
 // will have to start with the specified route
 app.use("/api/places", placesRoutes);
 
+// express expects 4 parameter middleware function like this
+// this will only be executed on requests where errors were thrown
+// it will be executed if any middleware in front of it yields an error
+app.use((error, req, res, next) => {
+  if (res.headerSent) {
+    return next(error);
+  }
+
+  res.status(error.code || 500);
+  res.json({ message: error.message || "An unknown error occorred." });
+});
+
 app.listen(5000);
