@@ -29,7 +29,7 @@ app.use((error, req, res, next) => {
   }
 
   res.status(error.code || 500);
-  res.json({ message: error.message || "An unknown error occorred." });
+  res.json({ message: error.message || "An unknown error occurred." });
 });
 
 app.listen(5000);

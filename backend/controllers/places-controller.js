@@ -1,6 +1,8 @@
 const uuid = require("uuid/v4");
+const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
+const getCoordsFromAddress = require("../util/location");
 
 let DUMMY_PLACES = [
   {
@@ -38,8 +40,21 @@ const getPlacesByUserId = (req, res, next) => {
   res.json({ places });
 };
 
-const createPlace = (req, res) => {
-  const { title, description, coordinates, address, creator } = req.body;
+const createPlace = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    // we replace throw with next() because throw does not work correcty in asynchronous code in Express
+    return next(new HttpError("Invalid data. Please check the inputs.", 422));
+  }
+
+  const { title, description, address, creator } = req.body;
+  let coordinates;
+
+  try {
+    coordinates = await getCoordsFromAddress(address);
+  } catch (error) {
+    return next(error);
+  }
 
   const createdPlace = { id: uuid(), title, description, location: coordinates, address, creator };
 
@@ -49,6 +64,11 @@ const createPlace = (req, res) => {
 };
 
 const updatePlace = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    throw new HttpError("Invalid data. Please check the inputs.", 422);
+  }
+
   const placeId = req.params.pid;
   const { title, description } = req.body;
 
@@ -68,6 +88,10 @@ const updatePlace = (req, res) => {
 
 const deletePlace = (req, res) => {
   const placeId = req.params.pid;
+
+  if (!DUMMY_PLACES.find(p => p.id === placeId)) {
+    throw new HttpError("Could not find a place for the provided id.", 404);
+  }
 
   DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId);
 
