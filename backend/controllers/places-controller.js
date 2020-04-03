@@ -126,6 +126,7 @@ const deletePlace = async (req, res, next) => {
 
   let place;
   try {
+    // with .populate you get access to the entire content of a document stored in another collection
     place = await Place.findById(placeId).populate("creator");
   } catch (err) {
     return next(new HttpError("Something went wrong, could not delete the place.", 500));

@@ -31,9 +31,32 @@ const Auth = () => {
     false
   );
 
-  const onSubmitHandler = event => {
+  const onSubmitHandler = async event => {
     event.preventDefault();
-    console.log(reducerState.inputs);
+
+    if (isLoginMode) {
+    } else {
+      try {
+        const response = await fetch("http://localhost:5000/api/users/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: reducerState.inputs.name.value,
+            email: reducerState.inputs.email.value,
+            password: reducerState.inputs.passw.value
+          })
+        });
+
+        const responseData = response.json();
+
+        console.log(responseData);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     auth.login();
   };
 
@@ -92,8 +115,8 @@ const Auth = () => {
           type="password"
           label="Password"
           onInput={inputChangeAction}
-          errorText="Please enter a valid password. (Must contain 7 characters)"
-          validators={[VALIDATOR_MINLENGTH(7)]}
+          errorText="Please enter a valid password. (Must contain 6 characters)"
+          validators={[VALIDATOR_MINLENGTH(6)]}
         />
         <Button type="submit" disabled={!reducerState.isValid}>
           {isLoginMode ? "LOG IN" : "SIGN UP"}
