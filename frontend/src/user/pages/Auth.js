@@ -4,18 +4,21 @@ import "./Auth.css";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import { useForm } from "../../shared/hooks/form.hook";
+import { useHttpClient } from "../../shared/hooks/http.hook";
 import {
   VALIDATOR_EMAIL,
   VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE
 } from "../../shared/util/validators";
 import Card from "../../shared/components/UIElements/Card";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import { AuthContext } from "../../context/auth-context";
 
 const Auth = () => {
   const auth = useContext(AuthContext);
-
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
   const [reducerState, inputChangeAction, setFormAction] = useForm(
     {
@@ -35,29 +38,43 @@ const Auth = () => {
     event.preventDefault();
 
     if (isLoginMode) {
+      try {
+        await sendRequest(
+          "http://localhost:5000/api/users/login",
+          "POST",
+          JSON.stringify({
+            email: reducerState.inputs.email.value,
+            password: reducerState.inputs.passw.value
+          }),
+          {
+            "Content-Type": "application/json"
+          }
+        );
+
+        auth.login();
+      } catch (err) {
+        console.error(err);
+      }
     } else {
       try {
-        const response = await fetch("http://localhost:5000/api/users/signup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
+        await sendRequest(
+          "http://localhost:5000/api/users/signup",
+          "POST",
+          JSON.stringify({
             name: reducerState.inputs.name.value,
             email: reducerState.inputs.email.value,
             password: reducerState.inputs.passw.value
-          })
-        });
+          }),
+          {
+            "Content-Type": "application/json"
+          }
+        );
 
-        const responseData = response.json();
-
-        console.log(responseData);
+        auth.login();
       } catch (err) {
         console.error(err);
       }
     }
-
-    auth.login();
   };
 
   const switchModeHandler = () => {
@@ -85,47 +102,51 @@ const Auth = () => {
   };
 
   return (
-    <Card className="auth">
-      <h2>Login</h2>
-      <hr />
-      <form onSubmit={onSubmitHandler}>
-        {!isLoginMode && (
+    <React.Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+      <Card className="auth">
+        {isLoading && <LoadingSpinner asOverlay />}
+        <h2>Login</h2>
+        <hr />
+        <form onSubmit={onSubmitHandler}>
+          {!isLoginMode && (
+            <Input
+              id="name"
+              element="input"
+              type="text"
+              label="Your Name"
+              onInput={inputChangeAction}
+              errorText="Please enter a valid name."
+              validators={[VALIDATOR_REQUIRE()]}
+            />
+          )}
           <Input
-            id="name"
+            id="email"
             element="input"
-            type="text"
-            label="Your Name"
+            type="email"
+            label="E-Mail"
             onInput={inputChangeAction}
-            errorText="Please enter a valid name."
-            validators={[VALIDATOR_REQUIRE()]}
+            errorText="Please enter a valid email address."
+            validators={[VALIDATOR_EMAIL()]}
           />
-        )}
-        <Input
-          id="email"
-          element="input"
-          type="email"
-          label="E-Mail"
-          onInput={inputChangeAction}
-          errorText="Please enter a valid email address."
-          validators={[VALIDATOR_EMAIL()]}
-        />
-        <Input
-          id="passw"
-          element="input"
-          type="password"
-          label="Password"
-          onInput={inputChangeAction}
-          errorText="Please enter a valid password. (Must contain 6 characters)"
-          validators={[VALIDATOR_MINLENGTH(6)]}
-        />
-        <Button type="submit" disabled={!reducerState.isValid}>
-          {isLoginMode ? "LOG IN" : "SIGN UP"}
+          <Input
+            id="passw"
+            element="input"
+            type="password"
+            label="Password"
+            onInput={inputChangeAction}
+            errorText="Please enter a valid password. (Must contain 6 characters)"
+            validators={[VALIDATOR_MINLENGTH(6)]}
+          />
+          <Button type="submit" disabled={!reducerState.isValid}>
+            {isLoginMode ? "LOG IN" : "SIGN UP"}
+          </Button>
+        </form>
+        <Button inverse onClick={switchModeHandler}>
+          SWITCH TO {isLoginMode ? "SIGN UP" : "LOG IN"}
         </Button>
-      </form>
-      <Button inverse onClick={switchModeHandler}>
-        SWITCH TO {isLoginMode ? "SIGN UP" : "LOG IN"}
-      </Button>
-    </Card>
+      </Card>
+    </React.Fragment>
   );
 };
 
