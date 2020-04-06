@@ -33,7 +33,13 @@ const signup = async (req, res, next) => {
     return next(new HttpError("User exists already, please login instead.", 422));
   }
 
-  const createdUser = new User({ name, email, password, image: "image", places: [] });
+  const createdUser = new User({
+    name,
+    email,
+    password,
+    image: req.file.path, // prepend server url on frontend
+    places: []
+  });
 
   try {
     await createdUser.save();

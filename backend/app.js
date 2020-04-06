@@ -1,3 +1,6 @@
+const fs = require("fs");
+const path = require("path");
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -10,6 +13,8 @@ const app = express();
 
 // middlewares will be parsed from top to bottom
 app.use(bodyParser.json());
+
+app.use("/uploads/images", express.static(path.join("uploads", "images")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -36,6 +41,10 @@ app.use(() => {
 // this will only be executed on requests where errors were thrown
 // it will be executed if any middleware in front of it yields an error
 app.use((error, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, err => err && console.error("weeee"));
+  }
+
   if (res.headerSent) {
     return next(error);
   }

@@ -14,6 +14,7 @@ import Card from "../../shared/components/UIElements/Card";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import { AuthContext } from "../../context/auth-context";
+import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 
 const Auth = () => {
   const auth = useContext(AuthContext);
@@ -57,17 +58,16 @@ const Auth = () => {
       }
     } else {
       try {
+        const formData = new FormData();
+        formData.append("name", reducerState.inputs.name.value);
+        formData.append("email", reducerState.inputs.email.value);
+        formData.append("password", reducerState.inputs.passw.value);
+        formData.append("image", reducerState.inputs.image.value);
+
         const responseData = await sendRequest(
           "http://localhost:5000/api/users/signup",
           "POST",
-          JSON.stringify({
-            name: reducerState.inputs.name.value,
-            email: reducerState.inputs.email.value,
-            password: reducerState.inputs.passw.value
-          }),
-          {
-            "Content-Type": "application/json"
-          }
+          formData // automatically applies "multipart/form-data" header
         );
 
         auth.login(responseData.user.id);
@@ -85,6 +85,10 @@ const Auth = () => {
           name: {
             value: "",
             isValid: false
+          },
+          image: {
+            value: null,
+            isValid: false
           }
         },
         false
@@ -93,7 +97,8 @@ const Auth = () => {
       setFormAction(
         {
           ...reducerState.inputs,
-          name: undefined
+          name: undefined,
+          image: undefined
         },
         reducerState.inputs.email.isValid && reducerState.inputs.passw.isValid
       );
@@ -118,6 +123,14 @@ const Auth = () => {
               onInput={inputChangeAction}
               errorText="Please enter a valid name."
               validators={[VALIDATOR_REQUIRE()]}
+            />
+          )}
+          {!isLoginMode && (
+            <ImageUpload
+              center
+              id="image"
+              onInput={inputChangeAction}
+              errorText="Please provide and image."
             />
           )}
           <Input
