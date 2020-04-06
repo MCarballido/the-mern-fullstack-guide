@@ -58,7 +58,7 @@ const login = async (req, res, next) => {
     return next(new HttpError("User email or password are not valid.", 401));
   }
 
-  res.json({ message: "Logged in successfully." });
+  res.json({ message: "Logged in successfully.", user: existingUser.toObject({ getters: true }) });
 };
 
 exports.getUsers = getUsers;
