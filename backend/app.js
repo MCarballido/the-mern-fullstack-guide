@@ -55,7 +55,7 @@ app.use((error, req, res, next) => {
 
 mongoose // the query parameter /places? is the default name for the database we'll create
   .connect(
-    "mongodb+srv://manu:manu123@cluster0-a483x.gcp.mongodb.net/places?retryWrites=true&w=majority",
+    `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0-a483x.gcp.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
     { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }
   )
   .then(() => app.listen(5000))

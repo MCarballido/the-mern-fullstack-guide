@@ -12,7 +12,7 @@ module.exports = (req, res, next) => {
 
     if (!token) throw new Error();
 
-    const decodedToken = jwt.verify(token, "DUMMY_PRIVATE_KEY");
+    const decodedToken = jwt.verify(token, process.env.JWT_KEY);
     req.userData = { userId: decodedToken.userId, email: decodedToken.email };
 
     next();

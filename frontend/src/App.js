@@ -1,14 +1,16 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { BrowserRouter, Route, Redirect, Switch } from "react-router-dom";
 
 import MainNavigation from "./shared/components/Navigation/MainNavigation";
-import NewPlace from "./places/pages/NewPlace";
-import UpdatePlace from "./places/pages/UpdatePlace";
 import UserPlaces from "./places/pages/UserPlaces";
-import Users from "./user/pages/Users";
-import Auth from "./user/pages/Auth";
 import { AuthContext } from "./context/auth-context";
 import { useAuth } from "./shared/hooks/auth.hook";
+import LoadingSpinner from "./shared/components/UIElements/LoadingSpinner";
+
+const NewPlace = React.lazy(() => import("./places/pages/NewPlace"));
+const UpdatePlace = React.lazy(() => import("./places/pages/UpdatePlace"));
+const Users = React.lazy(() => import("./user/pages/Users"));
+const Auth = React.lazy(() => import("./user/pages/Auth"));
 
 const App = () => {
   const { token, login, logout, userId } = useAuth();
@@ -57,7 +59,17 @@ const App = () => {
       cambia este value, todos los componentes q lo escuchen se re-renderizan */}
       <BrowserRouter>
         <MainNavigation />
-        <main>{routes}</main>
+        <main>
+          <Suspense
+            fallback={
+              <div className="center">
+                <LoadingSpinner />
+              </div>
+            }
+          >
+            {routes}
+          </Suspense>
+        </main>
       </BrowserRouter>
     </AuthContext.Provider>
   );

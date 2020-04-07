@@ -3,3 +3,7 @@
 **/.prettierrc
 **/package-lock.json
 backend/uploads/
+backend/nodemon.json
+**/build
+frontend/.env
+frontend/.env.production
