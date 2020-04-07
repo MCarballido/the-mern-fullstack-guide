@@ -47,12 +47,10 @@ const Auth = () => {
             email: reducerState.inputs.email.value,
             password: reducerState.inputs.passw.value
           }),
-          {
-            "Content-Type": "application/json"
-          }
+          { "Content-Type": "application/json" }
         );
 
-        auth.login(responseData.user.id);
+        auth.login(responseData.userId, responseData.token);
       } catch (err) {
         console.error(err);
       }
@@ -70,7 +68,7 @@ const Auth = () => {
           formData // automatically applies "multipart/form-data" header
         );
 
-        auth.login(responseData.user.id);
+        auth.login(responseData.userId, responseData.token);
       } catch (err) {
         console.error(err);
       }

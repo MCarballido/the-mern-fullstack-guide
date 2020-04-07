@@ -49,7 +49,7 @@ const createPlace = async (req, res, next) => {
     return next(new HttpError("Invalid data. Please check the inputs.", 422));
   }
 
-  const { title, description, address, creator } = req.body;
+  const { title, description, address } = req.body;
   let coordinates;
 
   try {
@@ -64,12 +64,12 @@ const createPlace = async (req, res, next) => {
     address,
     location: coordinates,
     image: req.file.path,
-    creator
+    creator: req.userData.userId
   });
 
   let user;
   try {
-    user = await User.findById(creator);
+    user = await User.findById(req.userData.userId);
   } catch (error) {
     return next(new HttpError("Creating place failed, please try again later.", 500));
   }
@@ -110,6 +110,12 @@ const updatePlace = async (req, res, next) => {
     return next(new HttpError("Something went wrong, could not find any place.", 500));
   }
 
+  // we have to parse it to string because this is a property of the mongoose object which defines an
+  // object containing the id - this property is not primitive string
+  if (place.creator.toString() !== req.userData.userId) {
+    return next(new HttpError("You are not allowed to perform this operation.", 401));
+  }
+
   place.title = title;
   place.description = description;
 
@@ -135,6 +141,12 @@ const deletePlace = async (req, res, next) => {
 
   if (!place) {
     return next(new HttpError("Could not find a place for the provided ID.", 404));
+  }
+
+  // since this is retrieved with the populate method, we have full access to its propertiess therefore
+  // we can access the string id
+  if (place.creator.id !== req.userData.userId) {
+    return next(new HttpError("You are not allowed to perform this operation.", 401));
   }
 
   const imagePath = place.image;
